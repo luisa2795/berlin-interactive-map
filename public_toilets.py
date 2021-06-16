@@ -41,4 +41,3 @@ if cb0:
 
 #call the map
 folium_static(m)
-
