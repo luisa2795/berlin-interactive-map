@@ -4,8 +4,6 @@ from streamlit_folium import folium_static
 import requests
 import json
 import geojson
-import fiona
-import geopandas as gpd
 import streamlit as st
 
 #create Berlin Map

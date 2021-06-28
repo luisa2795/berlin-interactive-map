@@ -52,10 +52,4 @@ for i,r in df_memorials.iterrows():
 #call the map
 folium_static(m)    
 
-#CREATE THE MAP USING PLOTLY
-import plotly.express as px
 
-fig = px.scatter_mapbox(df_memorials, lat="lat", lon="lon", hover_name="name", hover_data=["lat", "lon"], color_discrete_sequence=["fuchsia"], zoom=3, height=300)
-fig.update_layout(mapbox_style="dark")
-fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-st.plotly_chart(fig)
