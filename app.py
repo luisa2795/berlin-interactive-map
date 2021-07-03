@@ -8,6 +8,7 @@ import json
 import pymongo
 import geopandas as gpd
 from shapely.geometry import Point, shape
+import dns
 
 #function to convert gpx to points
 def process_gpx_to_df(file_name):
@@ -115,8 +116,8 @@ if cb8:
 
 #memorials
 if cb9:
-    client = pymongo.MongoClient()
-    db = client.berlin
+    client = pymongo.MongoClient('mongodb+srv://doadmin:A79tz5F16P3Z84kW@berlin-map-db-d1b8496c.mongo.ondigitalocean.com/berlin-map?authSource=admin&replicaSet=berlin-map-db&tls=true&tlsCAFile=ca-certificate.crt')
+    db = client['berlin-map']
     items = db.memorials.find()
     items = list(items)
     marker_cluster = folium.plugins.MarkerCluster().add_to(m)
@@ -171,19 +172,19 @@ if cb10:
 if cb11:
     # Initialize connection.
     #client = pymongo.MongoClient(**st.secrets["mongo"])
-    client = pymongo.MongoClient()
-    db = client.berlin
+    client = pymongo.MongoClient('mongodb+srv://doadmin:A79tz5F16P3Z84kW@berlin-map-db-d1b8496c.mongo.ondigitalocean.com/berlin-map?authSource=admin&replicaSet=berlin-map-db&tls=true&tlsCAFile=ca-certificate.crt')
+    db = client['berlin-map']
     items = db.monuments.find()
     items = list(items) 
 
     #plot memoorials in the map
     for item in items:
-        location3 = [item["lat"], item["lon"]]
-        point = Point(item["lon"], item["lat"])
+        location3 = [item["latitude"], item["longitude"]]
+        point = Point(item["longitude"], item["latitude"])
         for _, r in districts_filtered.iterrows():
             polygon = shape(r['geometry'])
             if polygon.contains(point):
-                folium.Marker(location=location3, popup = item['name'], tooltip=item['name']).add_to(m)
+                folium.Marker(location=location3, tooltip = item['Bezeichnung'], popup=item['Architekt und weitere Informationen']).add_to(m)
 
 #call the map
 folium_static(m)
