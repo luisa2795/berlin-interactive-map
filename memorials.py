@@ -45,16 +45,16 @@ for _, r in districts_filtered.iterrows():
 
 
 
-#plot memoorials in the map
+#plot memorials in the map
 items = db.memorials.find()
 items = list(items)
 marker_cluster = folium.plugins.MarkerCluster().add_to(m)
 for item in items:
     html=f"""
-    <p><h5> Type: {item['name']}</h5> </p>
-    <a href="https://www.gedenktafeln-in-berlin.de/nc/gedenktafeln/gedenktafel-anzeige/tid/100-jahre-kino-in-be/>here</a>.</p>
+    <p><h5> {item['name']}</h5> </p>
+    <p>Visit <a href= {item['url']}>the link</a> for more information.</p>
     """
-    iframe = folium.IFrame(html=html, width=300, height=200)
+    iframe = folium.IFrame(html=html, width=400, height=500)
     popup = folium.Popup(iframe, max_width=2650)
     location = [item["lat"], item["lon"]]
     folium.Marker(location=location, popup = popup, tooltip=item['name']).add_to(marker_cluster)
