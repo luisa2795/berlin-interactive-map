@@ -10,6 +10,10 @@ import geopandas as gpd
 from shapely.geometry import Point, shape
 import dns
 
+#initialize mongo client and database
+client = pymongo.MongoClient('mongodb+srv://doadmin:A79tz5F16P3Z84kW@berlin-map-db-d1b8496c.mongo.ondigitalocean.com/berlin-map?authSource=admin&replicaSet=berlin-map-db&tls=true&tlsCAFile=ca-certificate.crt')
+db = client['berlin-map']
+
 #function to convert gpx to points
 def process_gpx_to_df(file_name):
     gpx = gpxpy.parse(open(file_name))  
@@ -23,7 +27,7 @@ def process_gpx_to_df(file_name):
 #Loading and preprocessing fuction
 def load_data():
     #Load Distric data
-    districts=gpd.read_file('data/bezirksgrenzen.geojson', driver='GeoJSON')
+    districts=list(db.districtcoordinates.find())
     #Load WC data
     df = pd.read_excel("https://www.berlin.de/sen/uvk/_assets/verkehr/infrastruktur/oeffentliche-toiletten/berliner-toiletten-standorte.xlsx")
     header_row = 2
@@ -74,14 +78,12 @@ cb10 = st.sidebar.checkbox("Swimming spots")
 #load district data 
 cb_dist=[cb20, cb21, cb22, cb23, cb24, cb25, cb26, cb27, cb28, cb29, cb30, cb31]
 
-districts_filtered=districts[cb_dist]
+districts_filtered=coords_filtered=[x[1] for x in zip(cb_dist,districts) if x[0]==True]
 
-for _, r in districts_filtered.iterrows():
-    sim_geo = gpd.GeoSeries(r['geometry'])
-    geo_j = sim_geo.to_json()
-    geo_j = folium.GeoJson(data=geo_j,
+for r in districts_filtered:
+    geo_j = folium.GeoJson(data=r['geometry'],
                            style_function=lambda x: {'fillColor': 'orange'})
-    folium.Popup(r['Gemeinde_name']).add_to(geo_j)
+    folium.Popup(r['properties']['Gemeinde_name']).add_to(geo_j)
     geo_j.add_to(m)
 
 #WC
@@ -124,7 +126,7 @@ if cb9:
     for item in items:
         location = [item["lat"], item["lon"]]
         point = Point(item["lon"], item["lat"])
-        for _, r in districts_filtered.iterrows():
+        for r in districts_filtered:
             polygon = shape(r['geometry'])
             if polygon.contains(point):
                 folium.Marker(location=location, popup = item['name'], tooltip=item['name']).add_to(marker_cluster)
@@ -134,7 +136,7 @@ if cb10:
     for spot in swim_spots:
         location2=list(reversed(spot['geometry']['coordinates']))
         point2 = Point(location2[1], location2[0])
-        for _, r in districts_filtered.iterrows():
+        for r in districts_filtered:
             polygon = shape(r['geometry'])
             if polygon.contains(point2):
                 properties=spot['properties']
@@ -181,7 +183,7 @@ if cb11:
     for item in items:
         location3 = [item["latitude"], item["longitude"]]
         point = Point(item["longitude"], item["latitude"])
-        for _, r in districts_filtered.iterrows():
+        for r in districts_filtered:
             polygon = shape(r['geometry'])
             if polygon.contains(point):
                 folium.Marker(location=location3, tooltip = item['Bezeichnung'], popup=item['Architekt und weitere Informationen']).add_to(m)

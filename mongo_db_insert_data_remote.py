@@ -2,7 +2,7 @@
 #this code creates berlin database and uploads the data for monuments and memorials
 
 #import packages
-from pymongo import MongoClient
+from pymongo import MongoClient, GEOSPHERE
 import requests
 import json
 import pandas as pd
@@ -114,6 +114,23 @@ db.monuments.insert_many(monuments)
 #DISTRICTS transform and load data
 
 #load district data from https://daten.odis-berlin.de/de/dataset/bezirksgrenzen/ to mongodb
+#code partially taken from https://github.com/rtbigdata/geojson-mongo-import.py/blob/master/geojson-mongo-import.py
 
+#load the coordinates to a separate collection
+with open('data/bezirksgrenzen.geojson','r') as f:
+  geojson = json.loads(f.read())
 
-#districts=gpd.read_file('data/bezirksgrenzen.geojson', driver='GeoJSON')
+#define collection
+coords=db.districtcoordinates
+
+# create 2dsphere index and initialize unordered bulk insert
+coords.create_index([("geometry", GEOSPHERE)])
+bulk = coords.initialize_unordered_bulk_op()
+
+for feature in geojson['features']:
+  # append to bulk insert list
+  bulk.insert(feature)
+
+# execute bulk operation to the DB
+result = bulk.execute()
+print ("Number of Features successully inserted:", result["nInserted"])
