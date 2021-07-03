@@ -50,8 +50,14 @@ items = db.memorials.find()
 items = list(items)
 marker_cluster = folium.plugins.MarkerCluster().add_to(m)
 for item in items:
+    html=f"""
+    <p><h5> Type: {item['name']}</h5> </p>
+    <a href="https://www.gedenktafeln-in-berlin.de/nc/gedenktafeln/gedenktafel-anzeige/tid/100-jahre-kino-in-be/>here</a>.</p>
+    """
+    iframe = folium.IFrame(html=html, width=300, height=200)
+    popup = folium.Popup(iframe, max_width=2650)
     location = [item["lat"], item["lon"]]
-    folium.Marker(location=location, popup = item['name'], tooltip=item['name']).add_to(marker_cluster)
+    folium.Marker(location=location, popup = popup, tooltip=item['name']).add_to(marker_cluster)
 
 #call the map
 folium_static(m)
