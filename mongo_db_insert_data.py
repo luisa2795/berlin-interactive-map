@@ -1,20 +1,17 @@
+
+#this code creates berlin database and uploads the data for monuments and memorials
+
+#import packages
 from pymongo import MongoClient
-from pprint import pprint
 import requests
 import json
-import folium
-from streamlit_folium import folium_static
-from folium.plugins import MarkerCluster
 import pandas as pd
 import urllib.request
-from folium.plugins import FastMarkerCluster
 from geopy.extra.rate_limiter import RateLimiter
 from urllib.request import urlopen
 from xml.etree.ElementTree import parse
 import xml.etree.ElementTree as ET
 from geopy.geocoders import Nominatim
-import xmltodict
-import streamlit as st
 
 
 client = MongoClient()
@@ -54,14 +51,34 @@ db.memorials.insert_many(memorials)
 #import data
 df = pd.read_csv('data/denkmalliste_berlin_092020.csv')
 
-#Data Cleaning
+#select only 10 monuments for each district
 df = pd.read_csv('data/denkmalliste_berlin_092020.csv')
-df = df[df['Adresse'].notna()]
+df_charlotengburg = df[df['Bezirk'] == 'Charlottenburg-Wilmersdorf'].sample(n=6)
+df_reinickendorf = df[df['Bezirk'] == 'Reinickendorf'].sample(n=6)
+df_treptow_kopenick = df[df['Bezirk'] == 'Treptow-Köpenick'].sample(n=6)
+df_pankow = df[df['Bezirk'] == 'Pankow'].sample(n=6)
+df_neukölln = df[df['Bezirk'] == 'Neukölln'].sample(n=6)
+df_lichtenberg = df[df['Bezirk'] == 'Lichtenberg'].sample(n=6)
+df_marzahn_hellersdorf = df[df['Bezirk'] == 'Marzahn-Hellersdorf'].sample(n=6)
+df_spandau = df[df['Bezirk'] == 'Spandau'].sample(n=6)
+df_steglitz_zehlendorf = df[df['Bezirk'] == 'Steglitz-Zehlendorf'].sample(n=6)
+df_mitte= df[df['Bezirk'] == 'Mitte'].sample(n=6)
+df_friedrichshain_kreuzberg= df[df['Bezirk'] == 'Friedrichshain-Kreuzberg'].sample(n=6)
+df_tempelhof_schöneberg = df[df['Bezirk'] == 'Tempelhof-Schöneberg'].sample(n=6)
+
+df_monuments_combined = pd.concat([df_charlotengburg, df_reinickendorf, df_treptow_kopenick, df_pankow, df_neukölln, df_lichtenberg, 
+                                     df_marzahn_hellersdorf, df_spandau, df_steglitz_zehlendorf, df_mitte, df_friedrichshain_kreuzberg, df_tempelhof_schöneberg], ignore_index=True)
+
+
+
+#Data Cleaning
+df_monuments_combined = df_monuments_combined[df_monuments_combined['Adresse'].notna()]
 
 #creating a new column
-tmp_1 = df["Adresse"].str.split("/", n = 1, expand = True)
+tmp_1 = df_monuments_combined["Adresse"].str.split("/", n = 1, expand = True)
 tmp_2 = tmp_1[0].str.split(",", n = 1, expand = True)
-df['address'] = tmp_2[0]
+tmp_2 =  tmp_2.astype(str) + ', Berlin, Germany'
+df_monuments_combined['address'] = tmp_2[0]
 
 
 #converting address ro coordinates
@@ -69,22 +86,22 @@ locator = Nominatim(user_agent='myGeocoder')
 # 1 - conveneint function to delay between geocoding calls (this min delay can be a problem)
 geocode = RateLimiter(locator.geocode, min_delay_seconds=3)
 # 2- - create location column
-df['location'] = df['address'].apply(geocode)
+df_monuments_combined['location'] = df_monuments_combined['address'].apply(geocode)
 # 3 - create longitude, laatitude and altitude from location column (returns tuple)
-df['point'] = df['location'].apply(lambda loc: tuple(loc.point) if loc else None)
+df_monuments_combined['point'] = df_monuments_combined['location'].apply(lambda loc: tuple(loc.point) if loc else None)
 # 4 - split point column into latitude, longitude and altitude columns
-df[['latitude', 'longitude', 'altitude']] = pd.DataFrame(df['point'].tolist(), index=df.index)
+df_monuments_combined[['latitude', 'longitude', 'altitude']] = pd.DataFrame(df_monuments_combined['point'].tolist(), index=df_monuments_combined.index)
 
 #make sure there is no null value for latitude and longitute
-df = df[df['latitude'].notna()]
-df = df[df['longitude'].notna()]
+df_monuments_combined = df_monuments_combined[df_monuments_combined['latitude'].notna()]
+df_monuments_combined = df_monuments_combined[df_monuments_combined['longitude'].notna()]
 
 #delete uneccessary columns
-df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-df = df.drop(['location', 'point', 'altitude'], axis=1)
+df_monuments_combined = df_monuments_combined.loc[:, ~df_monuments_combined.columns.str.contains('^Unnamed')]
+df_monuments_combined = df_monuments_combined.drop(['location', 'point', 'altitude'], axis=1)
 
 #convert dataframe to a dictionary
-monuments = df.T.to_dict().values()
+monuments = df_monuments_combined.T.to_dict().values()
 
 #create file monuments and insert it in database
 db.monuments.insert_many(monuments)   
