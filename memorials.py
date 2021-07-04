@@ -50,14 +50,15 @@ items = db.memorials.find()
 items = list(items)
 marker_cluster = folium.plugins.MarkerCluster().add_to(m)
 for item in items:
+    
     html=f"""
     <p><h5> {item['name']}</h5> </p>
     <p>Visit <a href= {item['url']}>the link</a> for more information.</p>
     """
-    iframe = folium.IFrame(html=html, width=400, height=500)
+    iframe = folium.IFrame(html=html,  height=500)
     popup = folium.Popup(iframe, max_width=2650)
     location = [item["lat"], item["lon"]]
-    folium.Marker(location=location, popup = popup, tooltip=item['name']).add_to(marker_cluster)
+    folium.Marker(location=location, popup = popup,  tooltip=item['name']).add_to(marker_cluster)
 
 #call the map
 folium_static(m)

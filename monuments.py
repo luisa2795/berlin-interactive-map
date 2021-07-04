@@ -6,9 +6,13 @@ from streamlit_folium import folium_static
 import geopandas as gpd
 import folium
 import base64
+import streamlit.components.v1 as components  # Import Streamlit
 
 #create Berlin Map
-m = folium.Map(location = [52.520008, 13.404954], tiles = "cartodbpositron", zoom_start=10 ) 
+m = folium.Map(location = [52.520008, 13.404954], tiles = "cartodbpositron", zoom_start=10)
+border_style = {'color': '#000000', 'weight': '1.5', 'fillColor': '#58b5d1', 'fillOpacity': 0.08}
+boundary = folium.GeoJson(open('./data/berlin.geojson').read(), name='Berlin Boundary', style_function= lambda x: border_style, overlay=False)
+boundary.add_to(m)
 
 
 #setting filters
@@ -62,7 +66,7 @@ for item in items:
     <p>There are over 10 thousand monuments in Berlin. To access the full list, click 
     <a href="https://www.berlin.de/landesdenkmalamt/_assets/pdf-und-zip/denkmale/liste-karte-datenbank/denkmalliste_berlin.csv">here</a>.</p>
     """
-    iframe = folium.IFrame(html=html, width=300, height=200)
+    iframe = folium.IFrame(html=html, width=350, height=150)
     popup = folium.Popup(iframe, max_width=2650)
     location = [item["latitude"], item["longitude"]]
     folium.Marker(location=location, popup = popup, icon=folium.DivIcon(html=f"""

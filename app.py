@@ -10,6 +10,7 @@ import geopandas as gpd
 from shapely.geometry import Point, shape
 import dns
 
+
 #initialize mongo client and database
 client = pymongo.MongoClient('mongodb+srv://doadmin:A79tz5F16P3Z84kW@berlin-map-db-d1b8496c.mongo.ondigitalocean.com/berlin-map?authSource=admin&replicaSet=berlin-map-db&tls=true&tlsCAFile=ca-certificate.crt')
 db = client['berlin-map']
@@ -50,6 +51,9 @@ df, response, swim_spots, points, districts = load_data()
 
 #create Berlin Map
 m = folium.Map(location = [52.520008, 13.404954], tiles = "cartodbpositron", zoom_start=10)
+border_style = {'color': '#000000', 'weight': '1.5', 'fillColor': '#58b5d1', 'fillOpacity': 0.08}
+boundary = folium.GeoJson(open('./data/berlin.geojson').read(), name='Berlin Boundary', style_function= lambda x: border_style, overlay=False)
+boundary.add_to(m)
 
 #District filters
 st.sidebar.markdown("**Districts**")
@@ -124,12 +128,18 @@ if cb9:
     items = list(items)
     marker_cluster = folium.plugins.MarkerCluster().add_to(m)
     for item in items:
+        html=f"""
+    <p><h5> {item['name']}</h5> </p>
+    <p>Click <a href= {item['url']}>the link</a> to see for more information.</p>
+    """
+        iframe = folium.IFrame(html=html, width=600, height=300)
+        popup = folium.Popup(iframe, max_width=2650)
         location = [item["lat"], item["lon"]]
         point = Point(item["lon"], item["lat"])
         for r in districts_filtered:
             polygon = shape(r['geometry'])
             if polygon.contains(point):
-                folium.Marker(location=location, popup = item['name'], tooltip=item['name']).add_to(marker_cluster)
+                folium.Marker(location=location, popup = popup, tooltip=item['name']).add_to(marker_cluster)
 
 #swimming spots
 if cb10:
@@ -179,14 +189,27 @@ if cb11:
     items = db.monuments.find()
     items = list(items) 
 
-    #plot memoorials in the map
+    #plot monuments in the map
     for item in items:
+        html=f"""
+    <img src="./data/images/charlottenburg.jpg" alt="Charlottenburg"> 
+    <p><h5> Type: {item['Typ']}</h5> </p>
+    <p><h5> Description: {item['Bezeichnung']}</h5> </p>
+    <p>There are over 10 thousand monuments in Berlin. To access the full list, click 
+    <a href="https://www.berlin.de/landesdenkmalamt/_assets/pdf-und-zip/denkmale/liste-karte-datenbank/denkmalliste_berlin.csv">here</a>.</p>
+    """
+        iframe = folium.IFrame(html=html, width=300, height=200)
+        popup = folium.Popup(iframe, max_width=2650)
         location3 = [item["latitude"], item["longitude"]]
         point = Point(item["longitude"], item["latitude"])
         for r in districts_filtered:
             polygon = shape(r['geometry'])
             if polygon.contains(point):
-                folium.Marker(location=location3, tooltip = item['Bezeichnung'], popup=item['Architekt und weitere Informationen']).add_to(m)
+                folium.Marker(location=location3, popup=popup, icon=folium.DivIcon(html=f"""
+            <div><svg>
+                <circle cx="13" cy="13" r="13" fill="#69b3a2" opacity=".4"/>
+                <rect x="8", y="8" width="10" height="10", fill="red", opacity=".3" 
+            </svg></div>""")).add_to(m)
 
 #call the map
 folium_static(m)
