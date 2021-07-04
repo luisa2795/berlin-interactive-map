@@ -189,7 +189,7 @@ if cb11:
     items = db.monuments.find()
     items = list(items) 
 
-    #plot memoorials in the map
+    #plot monuments in the map
     for item in items:
         html=f"""
     <img src="./data/images/charlottenburg.jpg" alt="Charlottenburg"> 
@@ -207,8 +207,8 @@ if cb11:
             if polygon.contains(point):
                 folium.Marker(location=location3, popup=popup, icon=folium.DivIcon(html=f"""
             <div><svg>
-                <circle cx="45" cy="45" r="13" fill="#69b3a2" opacity=".4"/>
-                <rect x="40", y="40" width="10" height="10", fill="red", opacity=".3" 
+                <circle cx="13" cy="13" r="13" fill="#69b3a2" opacity=".4"/>
+                <rect x="8", y="8" width="10" height="10", fill="red", opacity=".3" 
             </svg></div>""")).add_to(m)
 
 #call the map
