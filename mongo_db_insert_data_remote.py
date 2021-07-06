@@ -22,6 +22,18 @@ client = MongoClient(
 
 db = client['berlin-map']
 
+#PUBLIC Toilets transform and load data
+df_wc = pd.read_excel("https://www.berlin.de/sen/uvk/_assets/verkehr/infrastruktur/oeffentliche-toiletten/berliner-toiletten-standorte.xlsx")
+header_row = 2
+df_wc.columns = df_wc.iloc[header_row]
+df_wc = df_wc.drop(0).drop(1).drop(2)
+df_wc = df_wc.reset_index(drop=True)
+
+#convert dataframe to a dictionary
+toilets = df_wc.T.to_dict().values()
+
+#create file monuments and insert it in the database
+db.toilets.insert_many(toilets)
 
 #MEMORIALS transform and load data
 var_url = urlopen('https://gedenktafeln-in-berlin.de/index.php?id=31&type=123')
@@ -47,8 +59,6 @@ for item in xmldoc.iterfind('item'):
 
 #create file monuments and insert it in the database
 db.memorials.insert_many(memorials)
-
-
 
 
 #MONUMENTS transform and load data
