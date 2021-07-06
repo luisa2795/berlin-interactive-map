@@ -10,45 +10,9 @@ import pymongo
 from shapely.geometry import Point, shape
 import dns
 import base64
+from functions import load_data
 
-
-#initialize mongo client and database
-client = pymongo.MongoClient('mongodb+srv://doadmin:A79tz5F16P3Z84kW@berlin-map-db-d1b8496c.mongo.ondigitalocean.com/berlin-map?authSource=admin&replicaSet=berlin-map-db&tls=true&tlsCAFile=ca-certificate.crt')
-db = client['berlin-map']
-
-#function to convert gpx to points
-def process_gpx_to_df(file_name):
-    gpx = gpxpy.parse(open(file_name))  
-    points = []
-    for track in gpx.tracks:
-        for segment in track.segments:        
-            for point in segment.points:
-                points.append(tuple([point.latitude, point.longitude]))
-    return points
-
-#Loading and preprocessing fuction
-def load_data():
-    #Load Distric data
-    districts=list(db.districtcoordinates.find())
-    #Load WC data
-    df = pd.read_excel("https://www.berlin.de/sen/uvk/_assets/verkehr/infrastruktur/oeffentliche-toiletten/berliner-toiletten-standorte.xlsx")
-    header_row = 2
-    df.columns = df.iloc[header_row]
-    df = df.drop(0).drop(1).drop(2)
-    df = df.reset_index(drop=True)
-    #Load Swimming Spots data
-    response=requests.get("https://www.berlin.de/lageso/gesundheit/gesundheitsschutz/badegewaesser/liste-der-badestellen/index.php/index/all.gjson?q=")
-    swim_spots=json.loads(response.text)['features']
-    points = []
-    #Load Hiking Data
-    for i in range(1, 21):
-        if i <10:
-            points.append(process_gpx_to_df('data/Weg0'+str(i)+'.gpx'))
-        else:
-            points.append(process_gpx_to_df('data/Weg'+str(i)+'.gpx'))
-    return df, response, swim_spots, points, districts
-
-df, response, swim_spots, points, districts = load_data()
+toilets, response, swim_spots, districts, items, items2 = load_data()
 
 #create Berlin Map
 m = folium.Map(location = [52.520008, 13.404954], tiles = "cartodbpositron", zoom_start=10)
@@ -58,23 +22,22 @@ border_style = {'color': '#000000', 'weight': '1.5', 'fillColor': '#58b5d1', 'fi
 
 #District filters
 st.sidebar.markdown("**Districts**")
-cb20 = st.sidebar.checkbox("Reinickendorf")
-cb21 = st.sidebar.checkbox("Charlottenburg-Wilmersdorf")
-cb22 = st.sidebar.checkbox("Treptow-Köpenick")
-cb23 = st.sidebar.checkbox("Pankow")
-cb24 = st.sidebar.checkbox("Neukölln")
-cb25 = st.sidebar.checkbox("Lichtenberg")
-cb26 = st.sidebar.checkbox("Marzahn-Hellersdorf")
-cb27 = st.sidebar.checkbox("Spandau")
-cb28 = st.sidebar.checkbox("Steglitz-Zehlendorf")
-cb29 = st.sidebar.checkbox("Mitte")
-cb30 = st.sidebar.checkbox("Friedrichshain-Kreuzberg")
-cb31= st.sidebar.checkbox("Tempelhof-Schöneberg")
+cb20 = st.sidebar.checkbox("Reinickendorf", value=True)
+cb21 = st.sidebar.checkbox("Charlottenburg-Wilmersdorf", value=True)
+cb22 = st.sidebar.checkbox("Treptow-Köpenick", value=True)
+cb23 = st.sidebar.checkbox("Pankow", value=True)
+cb24 = st.sidebar.checkbox("Neukölln", value=True)
+cb25 = st.sidebar.checkbox("Lichtenberg", value=True)
+cb26 = st.sidebar.checkbox("Marzahn-Hellersdorf", value=True)
+cb27 = st.sidebar.checkbox("Spandau", value=True)
+cb28 = st.sidebar.checkbox("Steglitz-Zehlendorf", value=True)
+cb29 = st.sidebar.checkbox("Mitte", value=True)
+cb30 = st.sidebar.checkbox("Friedrichshain-Kreuzberg", value=True)
+cb31= st.sidebar.checkbox("Tempelhof-Schöneberg", value=True)
 
 #Features filets
 st.sidebar.markdown("**Features**")
 cb0 = st.sidebar.checkbox("WC")
-cb8 = st.sidebar.checkbox("Hiking trails")
 cb9 = st.sidebar.checkbox("Memorials")
 cb11 = st.sidebar.checkbox("Monuments")
 cb10 = st.sidebar.checkbox("Swimming spots")
@@ -101,7 +64,9 @@ if cb0:
     cb5 = st.sidebar.checkbox("Can Be Payed With NFC")
     cb6 = st.sidebar.checkbox("Has Urinal")
     cb7 = st.sidebar.checkbox("Has Changing Table")
+    df = pd.DataFrame(toilets)
     sl  = st.sidebar.slider("Price", min_value=0.0, max_value=float(df['Price'].max()), step = 0.1, value = float(df['Price'].max()))
+    
     #Filter dataset
     df2 = df[(df['isOwnedByWall'] != int(cb1)-1) & (df['isHandicappedAccessible'] != int(cb2)-1) & 
     (df['canBePayedWithCoins'] != int(cb3)-1) & (df['canBePayedInApp'] != int(cb4)-1) & (df['canBePayedWithNFC'] != int(cb5)-1) & 
@@ -109,23 +74,17 @@ if cb0:
     df2 = df2.reset_index(drop=True)
     
     #Add markers
+    marker_cluster2 = folium.plugins.MarkerCluster().add_to(m)
     for i in range(df2.shape[0]):
         point = Point(df2.loc[i, 'Longitude'], df2.loc[i, 'Latitude'])
         for r in districts_filtered:
             polygon = shape(r['geometry'])
             if polygon.contains(point):
-                folium.Marker([df2.loc[i, 'Latitude'], df2.loc[i, 'Longitude']], popup=df2.loc[i, 'Street'], tooltip=df2.loc[i, 'Street']).add_to(m)
-
-#hiking trails      
-if cb8:
-    for i in range(len(points)):
-        folium.PolyLine(points[i]).add_to(m)
+                folium.Marker([df2.loc[i, 'Latitude'], df2.loc[i, 'Longitude']], popup=df2.loc[i, 'Street'], tooltip=df2.loc[i, 'Street'], icon=folium.Icon(icon='flag')).add_to(marker_cluster2)
 
 #memorials
 if cb9:
-    client = pymongo.MongoClient('mongodb+srv://doadmin:A79tz5F16P3Z84kW@berlin-map-db-d1b8496c.mongo.ondigitalocean.com/berlin-map?authSource=admin&replicaSet=berlin-map-db&tls=true&tlsCAFile=ca-certificate.crt')
-    db = client['berlin-map']
-    items = db.memorials.find()
+    #items = db.memorials.find()
     items = list(items)
     marker_cluster = folium.plugins.MarkerCluster().add_to(m)
     for item in items:
@@ -182,15 +141,11 @@ if cb10:
 
 #monuments
 if cb11:
-    # Initialize connection.
-    #client = pymongo.MongoClient(**st.secrets["mongo"])
-    client = pymongo.MongoClient('mongodb+srv://doadmin:A79tz5F16P3Z84kW@berlin-map-db-d1b8496c.mongo.ondigitalocean.com/berlin-map?authSource=admin&replicaSet=berlin-map-db&tls=true&tlsCAFile=ca-certificate.crt')
-    db = client['berlin-map']
-    items = db.monuments.find()
-    items = list(items) 
+    #items2 = db.monuments.find()
+    items2 = list(items2) 
 
     #plot monuments in the map
-    for item in items:
+    for item in items2:
         png='data/images/{}.jpg'.format(item['Bezirk'])
         encoded=base64.b64encode(open(png, 'rb').read())
         html=folium.Html('''
