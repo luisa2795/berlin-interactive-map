@@ -111,7 +111,7 @@ if cb0:
     #Add markers
     for i in range(df2.shape[0]):
         point = Point(df2.loc[i, 'Longitude'], df2.loc[i, 'Latitude'])
-        for _, r in districts_filtered.iterrows():
+        for r in districts_filtered:
             polygon = shape(r['geometry'])
             if polygon.contains(point):
                 folium.Marker([df2.loc[i, 'Latitude'], df2.loc[i, 'Longitude']], popup=df2.loc[i, 'Street'], tooltip=df2.loc[i, 'Street']).add_to(m)
