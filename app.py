@@ -6,9 +6,10 @@ import gpxpy
 import requests
 import json
 import pymongo
-import geopandas as gpd
+#import geopandas as gpd
 from shapely.geometry import Point, shape
 import dns
+import base64
 
 
 #initialize mongo client and database
@@ -52,8 +53,8 @@ df, response, swim_spots, points, districts = load_data()
 #create Berlin Map
 m = folium.Map(location = [52.520008, 13.404954], tiles = "cartodbpositron", zoom_start=10)
 border_style = {'color': '#000000', 'weight': '1.5', 'fillColor': '#58b5d1', 'fillOpacity': 0.08}
-boundary = folium.GeoJson(open('./data/berlin.geojson').read(), name='Berlin Boundary', style_function= lambda x: border_style, overlay=False)
-boundary.add_to(m)
+#boundary = folium.GeoJson(open('./data/berlin.geojson').read(), name='Berlin Boundary', style_function= lambda x: border_style, overlay=False)
+#boundary.add_to(m)
 
 #District filters
 st.sidebar.markdown("**Districts**")
@@ -128,10 +129,9 @@ if cb9:
     items = list(items)
     marker_cluster = folium.plugins.MarkerCluster().add_to(m)
     for item in items:
-        html=f"""
-    <p><h5> {item['name']}</h5> </p>
-    <p>Click <a href= {item['url']}>the link</a> to see for more information.</p>
-    """
+        html= f"""<p><h5> {item['name']}</h5> </p>
+            <p>Click <a href= {item['url']}>the link</a> to see for more information.</p>
+            """
         iframe = folium.IFrame(html=html, width=600, height=300)
         popup = folium.Popup(iframe, max_width=2650)
         location = [item["lat"], item["lon"]]
@@ -191,15 +191,22 @@ if cb11:
 
     #plot monuments in the map
     for item in items:
-        html=f"""
-    <img src="./data/images/charlottenburg.jpg" alt="Charlottenburg"> 
-    <p><h5> Type: {item['Typ']}</h5> </p>
-    <p><h5> Description: {item['Bezeichnung']}</h5> </p>
-    <p>There are over 10 thousand monuments in Berlin. To access the full list, click 
-    <a href="https://www.berlin.de/landesdenkmalamt/_assets/pdf-und-zip/denkmale/liste-karte-datenbank/denkmalliste_berlin.csv">here</a>.</p>
-    """
-        iframe = folium.IFrame(html=html, width=300, height=200)
-        popup = folium.Popup(iframe, max_width=2650)
+        png='data/images/{}.jpg'.format(item['Bezirk'])
+        encoded=base64.b64encode(open(png, 'rb').read())
+        html=folium.Html('''
+        <img src="data:image/png;base64,{}">
+        <p><i>picture: one of the monuments in {}</i> </p>
+        <p><h5> Type: {}</h5> </p>
+        <p><h5> Description: {}</h5> </p>
+        <p>There are over 10 thousand monuments in Berlin. To access the full list, click 
+        <a href="https://www.berlin.de/landesdenkmalamt/_assets/pdf-und-zip/denkmale/liste-karte-datenbank/denkmalliste_berlin.csv">here</a>.</p>
+        '''.format(
+            encoded.decode('UTF-8'),
+            item['Bezirk'], 
+            item['Typ'], 
+            item['Bezeichnung']
+            ), script=True)
+        popup = folium.Popup(html, max_width=450)
         location3 = [item["latitude"], item["longitude"]]
         point = Point(item["longitude"], item["latitude"])
         for r in districts_filtered:
