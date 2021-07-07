@@ -11,6 +11,7 @@ from shapely.geometry import Point, shape
 import dns
 import base64
 from functions import load_data
+from folium.plugins import Fullscreen
 
 toilets, response, swim_spots, districts, items, items2 = load_data()
 
@@ -19,6 +20,8 @@ m = folium.Map(location = [52.520008, 13.404954], tiles = "cartodbpositron", zoo
 border_style = {'color': '#000000', 'weight': '1.5', 'fillColor': '#58b5d1', 'fillOpacity': 0.08}
 boundary = folium.GeoJson(open('./data/berlin.geojson').read(), name='Berlin Boundary', style_function= lambda x: border_style, overlay=False)
 boundary.add_to(m)
+#add full screen option to the map
+Fullscreen().add_to(m)
 
 #District filters
 st.sidebar.markdown("**Districts**")
