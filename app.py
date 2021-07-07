@@ -151,9 +151,10 @@ if cb11:
         html=folium.Html('''
         <img src="data:image/png;base64,{}">
         <p><i>picture: one of the monuments in {}</i> </p>
-        <p><h5> Type: {}</h5> </p>
-        <p><h5> Description: {}</h5> </p>
-        <p>There are over 10 thousand monuments in Berlin. To access the full list, click 
+        <p>
+        <b>Type:</b>{} <br> 
+        <b> Description: </b> {} <br>
+        There are over 10 thousand monuments in Berlin. <br>To access the full list, click 
         <a href="https://www.berlin.de/landesdenkmalamt/_assets/pdf-und-zip/denkmale/liste-karte-datenbank/denkmalliste_berlin.csv">here</a>.</p>
         '''.format(
             encoded.decode('UTF-8'),
