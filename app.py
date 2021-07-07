@@ -11,6 +11,7 @@ from shapely.geometry import Point, shape
 import dns
 import base64
 from functions import load_data
+from folium.plugins import Fullscreen
 
 toilets, response, swim_spots, districts, items, items2 = load_data()
 
@@ -19,6 +20,8 @@ m = folium.Map(location = [52.520008, 13.404954], tiles = "cartodbpositron", zoo
 border_style = {'color': '#000000', 'weight': '1.5', 'fillColor': '#58b5d1', 'fillOpacity': 0.08}
 boundary = folium.GeoJson(open('./data/berlin.geojson').read(), name='Berlin Boundary', style_function= lambda x: border_style, overlay=False)
 boundary.add_to(m)
+#add full screen option to the map
+Fullscreen().add_to(m)
 
 #District filters
 st.sidebar.markdown("**Districts**")
@@ -151,9 +154,10 @@ if cb11:
         html=folium.Html('''
         <img src="data:image/png;base64,{}">
         <p><i>picture: one of the monuments in {}</i> </p>
-        <p><h5> Type: {}</h5> </p>
-        <p><h5> Description: {}</h5> </p>
-        <p>There are over 10 thousand monuments in Berlin. To access the full list, click 
+        <p>
+        <b>Type:</b>{} <br> 
+        <b> Description: </b> {} <br>
+        There are over 10 thousand monuments in Berlin. <br>To access the full list, click 
         <a href="https://www.berlin.de/landesdenkmalamt/_assets/pdf-und-zip/denkmale/liste-karte-datenbank/denkmalliste_berlin.csv">here</a>.</p>
         '''.format(
             encoded.decode('UTF-8'),
