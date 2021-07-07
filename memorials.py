@@ -50,12 +50,12 @@ items = db.memorials.find()
 items = list(items)
 marker_cluster = folium.plugins.MarkerCluster().add_to(m)
 for item in items:
-    
+    #custom_icon = folium.CustomIcon('./data/images/memorials.png', icon_size=(35, 35), popup_anchor=(0, -22))
     html=f"""
-    <p><h5> {item['name']}</h5> </p>
-    <p>Visit <a href= {item['url']}>the link</a> for more information.</p>
+    <center><p><h5> {item['name']}</h5> <br>
+    <p>Visit <a href= {item['url']}>the link</a> for more information.</p></center>
     """
-    iframe = folium.IFrame(html=html,  height=500)
+    iframe = folium.IFrame(html=html,  width=600, height=300)
     popup = folium.Popup(iframe, max_width=2650)
     location = [item["lat"], item["lon"]]
     folium.Marker(location=location, popup = popup,  tooltip=item['name']).add_to(marker_cluster)
