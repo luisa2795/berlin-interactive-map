@@ -91,8 +91,9 @@ if cb9:
     items = list(items)
     marker_cluster = folium.plugins.MarkerCluster().add_to(m)
     for item in items:
-        html= f"""<p><h5> {item['name']}</h5> </p>
-            <p>Click <a href= {item['url']}>the link</a> to see for more information.</p>
+        html= f"""<center><p><b> {item['name']}</b> is created by
+        <b> {item['autor']}</b> <br> 
+            Click <a href= {item['url']}>here</a> to get a full description and pictures for this memorial.</p></center>
             """
         iframe = folium.IFrame(html=html, width=600, height=300)
         popup = folium.Popup(iframe, max_width=2650)
