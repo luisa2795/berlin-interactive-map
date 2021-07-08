@@ -13,13 +13,13 @@ import base64
 from functions import load_data
 from folium.plugins import Fullscreen
 
-toilets, response, swim_spots, districts, items, items2 = load_data()
+boundary, toilets, response, swim_spots, districts, memorials, monuments = load_data()
 
 #create Berlin Map
 m = folium.Map(location = [52.520008, 13.404954], tiles = "cartodbpositron", zoom_start=10)
 border_style = {'color': '#000000', 'weight': '1.5', 'fillColor': '#58b5d1', 'fillOpacity': 0.08}
-boundary = folium.GeoJson(open('./data/berlin.geojson').read(), name='Berlin Boundary', style_function= lambda x: border_style, overlay=False)
-boundary.add_to(m)
+city_boundary = folium.GeoJson(boundary, name='Berlin Boundary', style_function= lambda x: border_style, overlay=False)
+city_boundary.add_to(m)
 #add full screen option to the map
 Fullscreen().add_to(m)
 
@@ -88,7 +88,7 @@ if cb0:
 #memorials
 if cb9:
     #items = db.memorials.find()
-    items = list(items)
+    items = list(memorials)
     marker_cluster = folium.plugins.MarkerCluster().add_to(m)
     for item in items:
         html= f"""<center><p><b> {item['name']}</b> is created by
@@ -146,7 +146,7 @@ if cb10:
 #monuments
 if cb11:
     #items2 = db.monuments.find()
-    items2 = list(items2) 
+    items2 = list(monuments) 
 
     #plot monuments in the map
     for item in items2:
