@@ -122,10 +122,9 @@ db.monuments.insert_many(monuments)
 
 
 #DISTRICTS transform and load data
-#code partially taken from https://github.com/rtbigdata/geojson-mongo-import.py/blob/master/geojson-mongo-import.py
-#load the coordinates to a separate collection
-with open('data/bezirksgrenzen.geojson','r') as f:
-  geojson = json.loads(f.read())
+#get the data from ODIS berlin
+dist_response=requests.get('https://tsb-opendata.s3.eu-central-1.amazonaws.com/bezirksgrenzen/bezirksgrenzen.geojson')
+geojson=json.loads(dist_response.text)
 
 #define collection
 coords=db.districtcoordinates
@@ -145,6 +144,10 @@ print ("Number of Features successully inserted:", result["nInserted"])
 
 
 #BOUNDARY insert to DB
+#response= requests.get('https://github.com/opendatalab-de/simple-geodata-selector/blob/master/src/data/bundeslaender_sim20.geojson')
+#states=json.loads(response.text)
+
+
 with open('data/berlin.geojson','r') as f:
   geojson_boundary = json.loads(f.read())
 
