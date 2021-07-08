@@ -20,6 +20,8 @@ def load_data():
     #initialize mongo client and database
     client = pymongo.MongoClient('mongodb+srv://doadmin:A79tz5F16P3Z84kW@berlin-map-db-d1b8496c.mongo.ondigitalocean.com/berlin-map?authSource=admin&replicaSet=berlin-map-db&tls=true&tlsCAFile=ca-certificate.crt')
     db = client['berlin-map']
+    #load Berlin Boundary
+    boundary=list(db.boundary.find())[0]['geometry']
     #Load Distric data
     districts=list(db.districtcoordinates.find())
     #Load WC data
@@ -32,16 +34,16 @@ def load_data():
     #Load Monuments data
     items2 = list(db.monuments.find())
     client.close()
-    return toilets, response, swim_spots, districts, items, items2
+    return boundary, toilets, response, swim_spots, districts, items, items2
 
 
-toilets, response, swim_spots, districts, items, items2 = load_data()
+boundary, toilets, response, swim_spots, districts, memorials, monuments = load_data()
 
 #create Berlin Map
 m = folium.Map(location = [52.520008, 13.404954], tiles = "cartodbpositron", zoom_start=10)
 border_style = {'color': '#000000', 'weight': '1.5', 'fillColor': '#58b5d1', 'fillOpacity': 0.08}
-boundary = folium.GeoJson(open('./data/berlin.geojson').read(), name='Berlin Boundary', style_function= lambda x: border_style, overlay=False)
-boundary.add_to(m)
+city_boundary = folium.GeoJson(boundary, name='Berlin Boundary', style_function= lambda x: border_style, overlay=False)
+city_boundary.add_to(m)
 #add full screen option to the map
 Fullscreen().add_to(m)
 
@@ -109,8 +111,8 @@ if cb0:
 
 #memorials
 if cb9:
-    #items = db.memorials.find()
-    items = list(items)
+    
+    items = memorials
     marker_cluster = folium.plugins.MarkerCluster().add_to(m)
     for item in items:
         html= f"""<center><p><b> {item['name']}</b> is created by
@@ -167,9 +169,8 @@ if cb10:
 
 #monuments
 if cb11:
-    #items2 = db.monuments.find()
-    items2 = list(items2) 
-
+    
+    items2 = monuments
     #plot monuments in the map
     for item in items2:
         png='data/images/{}.jpg'.format(item['Bezirk'])

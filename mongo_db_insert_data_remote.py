@@ -122,10 +122,7 @@ db.monuments.insert_many(monuments)
 
 
 #DISTRICTS transform and load data
-
-#load district data from https://daten.odis-berlin.de/de/dataset/bezirksgrenzen/ to mongodb
 #code partially taken from https://github.com/rtbigdata/geojson-mongo-import.py/blob/master/geojson-mongo-import.py
-
 #load the coordinates to a separate collection
 with open('data/bezirksgrenzen.geojson','r') as f:
   geojson = json.loads(f.read())
@@ -144,3 +141,24 @@ for feature in geojson['features']:
 # execute bulk operation to the DB
 result = bulk.execute()
 print ("Number of Features successully inserted:", result["nInserted"])
+
+
+
+#BOUNDARY insert to DB
+with open('data/berlin.geojson','r') as f:
+  geojson_boundary = json.loads(f.read())
+
+#define collection
+boundary=db.boundary
+
+# create 2dsphere index and initialize unordered bulk insert
+boundary.create_index([("geometry", GEOSPHERE)])
+bulk1 = boundary.initialize_unordered_bulk_op()
+
+for feature in geojson_boundary['features']:
+  # append to bulk insert list
+  bulk1.insert(feature)
+
+# execute bulk operation to the DB
+result1 = bulk1.execute()
+print ("Number of Features successully inserted:", result1["nInserted"])
