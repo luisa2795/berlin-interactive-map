@@ -10,8 +10,32 @@ import pymongo
 from shapely.geometry import Point, shape
 import dns
 import base64
-from functions import load_data
 from folium.plugins import Fullscreen
+import pymongo
+import requests
+import json
+
+@st.cache(allow_output_mutation=True, show_spinner=False)
+def load_data():
+    #initialize mongo client and database
+    client = pymongo.MongoClient('mongodb+srv://doadmin:A79tz5F16P3Z84kW@berlin-map-db-d1b8496c.mongo.ondigitalocean.com/berlin-map?authSource=admin&replicaSet=berlin-map-db&tls=true&tlsCAFile=ca-certificate.crt')
+    db = client['berlin-map']
+    #load Berlin Boundary
+    boundary=list(db.boundary.find())[0]['geometry']
+    #Load Distric data
+    districts=list(db.districtcoordinates.find())
+    #Load WC data
+    toilets=list(db.toilets.find())
+    #Load Swimming Spots data
+    response=requests.get("https://www.berlin.de/lageso/gesundheit/gesundheitsschutz/badegewaesser/liste-der-badestellen/index.php/index/all.gjson?q=")
+    swim_spots=json.loads(response.text)['features']
+    #Load Memorials data
+    items = list(db.memorials.find())
+    #Load Monuments data
+    items2 = list(db.monuments.find())
+    client.close()
+    return boundary, toilets, response, swim_spots, districts, items, items2
+
 
 boundary, toilets, response, swim_spots, districts, memorials, monuments = load_data()
 
@@ -87,8 +111,8 @@ if cb0:
 
 #memorials
 if cb9:
-    #items = db.memorials.find()
-    items = list(memorials)
+    
+    items = memorials
     marker_cluster = folium.plugins.MarkerCluster().add_to(m)
     for item in items:
         html= f"""<center><p><b> {item['name']}</b> is created by
@@ -145,9 +169,8 @@ if cb10:
 
 #monuments
 if cb11:
-    #items2 = db.monuments.find()
-    items2 = list(monuments) 
-
+    
+    items2 = monuments
     #plot monuments in the map
     for item in items2:
         png='data/images/{}.jpg'.format(item['Bezirk'])
