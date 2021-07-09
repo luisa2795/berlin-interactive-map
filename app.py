@@ -2,18 +2,14 @@ import pandas as pd
 import streamlit as st
 import folium
 from streamlit_folium import folium_static
-import gpxpy
 import requests
 import json
 import pymongo
-#import geopandas as gpd
 from shapely.geometry import Point, shape
 import dns
 import base64
 from folium.plugins import Fullscreen
-import pymongo
-import requests
-import json
+
 
 @st.cache(allow_output_mutation=True, show_spinner=False)
 def load_data():
@@ -49,29 +45,29 @@ Fullscreen().add_to(m)
 
 #District filters
 st.sidebar.markdown("**Districts**")
-cb20 = st.sidebar.checkbox("Reinickendorf")
-cb21 = st.sidebar.checkbox("Charlottenburg-Wilmersdorf")
-cb22 = st.sidebar.checkbox("Treptow-Köpenick")
-cb23 = st.sidebar.checkbox("Pankow")
-cb24 = st.sidebar.checkbox("Neukölln")
-cb25 = st.sidebar.checkbox("Lichtenberg")
-cb26 = st.sidebar.checkbox("Marzahn-Hellersdorf")
-cb27 = st.sidebar.checkbox("Spandau")
-cb28 = st.sidebar.checkbox("Steglitz-Zehlendorf")
-cb29 = st.sidebar.checkbox("Mitte")
-cb30 = st.sidebar.checkbox("Friedrichshain-Kreuzberg")
-cb31= st.sidebar.checkbox("Tempelhof-Schöneberg")
+cb0 = st.sidebar.checkbox("Reinickendorf")
+cb1 = st.sidebar.checkbox("Charlottenburg-Wilmersdorf")
+cb2 = st.sidebar.checkbox("Treptow-Köpenick")
+cb3 = st.sidebar.checkbox("Pankow")
+cb4 = st.sidebar.checkbox("Neukölln")
+cb5 = st.sidebar.checkbox("Lichtenberg")
+cb6 = st.sidebar.checkbox("Marzahn-Hellersdorf")
+cb7 = st.sidebar.checkbox("Spandau")
+cb8 = st.sidebar.checkbox("Steglitz-Zehlendorf")
+cb9 = st.sidebar.checkbox("Mitte")
+cb10 = st.sidebar.checkbox("Friedrichshain-Kreuzberg")
+cb11= st.sidebar.checkbox("Tempelhof-Schöneberg")
 
 #Features filets
 st.sidebar.markdown("**Features**")
-cb0 = st.sidebar.checkbox("WC")
-cb9 = st.sidebar.checkbox("Memorials")
-cb11 = st.sidebar.checkbox("Monuments")
-cb10 = st.sidebar.checkbox("Swimming spots")
+cb12 = st.sidebar.checkbox("WC")
+cb13 = st.sidebar.checkbox("Memorials")
+cb14 = st.sidebar.checkbox("Monuments")
+cb15 = st.sidebar.checkbox("Swimming spots")
 
 
 #load district data 
-cb_dist=[cb20, cb21, cb22, cb23, cb24, cb25, cb26, cb27, cb28, cb29, cb30, cb31]
+cb_dist=[cb0, cb1, cb2, cb3, cb4, cb5, cb6, cb7, cb8, cb9, cb10, cb11]
 
 districts_filtered=coords_filtered=[x[1] for x in zip(cb_dist,districts) if x[0]==True]
 
@@ -82,22 +78,22 @@ for r in districts_filtered:
     geo_j.add_to(m)
 
 #WC
-if cb0:
+if cb12:
     st.sidebar.markdown("**WC Filters**")
-    cb1 = st.sidebar.checkbox("Owned By Wall")
-    cb2 = st.sidebar.checkbox("Wheelchair Accessible")
-    cb3 = st.sidebar.checkbox("Can Be Payed With Coins")
-    cb4 = st.sidebar.checkbox("Can Be Payed In App")
-    cb5 = st.sidebar.checkbox("Can Be Payed With NFC")
-    cb6 = st.sidebar.checkbox("Has Urinal")
-    cb7 = st.sidebar.checkbox("Has Changing Table")
+    cb16 = st.sidebar.checkbox("Owned By Wall")
+    cb17 = st.sidebar.checkbox("Wheelchair Accessible")
+    cb18 = st.sidebar.checkbox("Can Be Payed With Coins")
+    cb19 = st.sidebar.checkbox("Can Be Payed In App")
+    cb20 = st.sidebar.checkbox("Can Be Payed With NFC")
+    cb21 = st.sidebar.checkbox("Has Urinal")
+    cb22 = st.sidebar.checkbox("Has Changing Table")
     df = pd.DataFrame(toilets)
     sl  = st.sidebar.slider("Price", min_value=0.0, max_value=float(df['Price'].max()), step = 0.1, value = float(df['Price'].max()))
     
     #Filter dataset
-    df2 = df[(df['isOwnedByWall'] != int(cb1)-1) & (df['isHandicappedAccessible'] != int(cb2)-1) & 
-    (df['canBePayedWithCoins'] != int(cb3)-1) & (df['canBePayedInApp'] != int(cb4)-1) & (df['canBePayedWithNFC'] != int(cb5)-1) & 
-    (df['hasUrinal'] != int(cb6)-1) & (df['hasChangingTable'] != int(cb7)-1) & (df['Price'] <= sl)]
+    df2 = df[(df['isOwnedByWall'] != int(cb16)-1) & (df['isHandicappedAccessible'] != int(cb17)-1) & 
+    (df['canBePayedWithCoins'] != int(cb18)-1) & (df['canBePayedInApp'] != int(cb19)-1) & (df['canBePayedWithNFC'] != int(cb20)-1) & 
+    (df['hasUrinal'] != int(cb21)-1) & (df['hasChangingTable'] != int(cb22)-1) & (df['Price'] <= sl)]
     df2 = df2.reset_index(drop=True)
     
     #Add markers
@@ -110,8 +106,7 @@ if cb0:
                 folium.Marker([df2.loc[i, 'Latitude'], df2.loc[i, 'Longitude']], popup=df2.loc[i, 'Street'], tooltip=df2.loc[i, 'Street'], icon=folium.Icon(icon='flag')).add_to(marker_cluster2)
 
 #memorials
-if cb9:
-    
+if cb13:
     items = memorials
     marker_cluster = folium.plugins.MarkerCluster().add_to(m)
     for item in items:
@@ -129,7 +124,7 @@ if cb9:
                 folium.Marker(location=location, popup = popup, tooltip=item['name']).add_to(marker_cluster)
 
 #swimming spots
-if cb10:
+if cb15:
     for spot in swim_spots:
         location2=list(reversed(spot['geometry']['coordinates']))
         point2 = Point(location2[1], location2[0])
@@ -168,8 +163,7 @@ if cb10:
                     ).add_to(m)
 
 #monuments
-if cb11:
-    
+if cb14:
     items2 = monuments
     #plot monuments in the map
     for item in items2:

@@ -2,7 +2,8 @@ streamlit
 folium
 streamlit_folium
 pandas
-geopy
-geopandas
-geojson
 pymongo
+requests
+shapely
+base64
+dnspython
