@@ -5,5 +5,4 @@ pandas
 pymongo
 requests
 shapely
-base64
 dnspython
