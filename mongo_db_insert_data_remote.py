@@ -143,22 +143,18 @@ print ("Number of Features successully inserted:", result["nInserted"])
 
 
 
-#BOUNDARY insert to DB
-#response= requests.get('https://github.com/opendatalab-de/simple-geodata-selector/blob/master/src/data/bundeslaender_sim20.geojson')
-#states=json.loads(response.text)
-
-
-with open('data/berlin.geojson','r') as f:
-  geojson_boundary = json.loads(f.read())
+#BOUNDARY (states) insert to DB
+response= requests.get('https://opendata.arcgis.com/datasets/ef4b445a53c1406892257fe63129a8ea_0.geojson')
+states=json.loads(response.text)
 
 #define collection
-boundary=db.boundary
+boundary=db.states
 
 # create 2dsphere index and initialize unordered bulk insert
 boundary.create_index([("geometry", GEOSPHERE)])
 bulk1 = boundary.initialize_unordered_bulk_op()
 
-for feature in geojson_boundary['features']:
+for feature in states['features']:
   # append to bulk insert list
   bulk1.insert(feature)
 

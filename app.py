@@ -21,7 +21,7 @@ def load_data():
     client = pymongo.MongoClient('mongodb+srv://doadmin:A79tz5F16P3Z84kW@berlin-map-db-d1b8496c.mongo.ondigitalocean.com/berlin-map?authSource=admin&replicaSet=berlin-map-db&tls=true&tlsCAFile=ca-certificate.crt')
     db = client['berlin-map']
     #load Berlin Boundary
-    boundary=list(db.boundary.find())[0]['geometry']
+    boundary=db.states.find_one({'properties.LAN_ew_GEN':'Berlin'})['geometry']
     #Load Distric data
     districts=list(db.districtcoordinates.find())
     #Load WC data
