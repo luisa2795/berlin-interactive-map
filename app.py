@@ -26,14 +26,17 @@ def load_data():
     response=requests.get("https://www.berlin.de/lageso/gesundheit/gesundheitsschutz/badegewaesser/liste-der-badestellen/index.php/index/all.gjson?q=")
     swim_spots=json.loads(response.text)['features']
     #Load Memorials data
-    items = list(db.memorials.find())
+    memorials = list(db.memorials.find())
     #Load Monuments data
-    items2 = list(db.monuments.find())
+    monuments = list(db.monuments.find())
     client.close()
-    return boundary, toilets, response, swim_spots, districts, items, items2
+    return boundary, toilets, response, swim_spots, districts, memorials, monuments
 
 
 boundary, toilets, response, swim_spots, districts, memorials, monuments = load_data()
+
+#create title
+st.title('Berlin interactive city map')
 
 #create Berlin Map
 m = folium.Map(location = [52.520008, 13.404954], tiles = "cartodbpositron", zoom_start=10)
@@ -107,9 +110,8 @@ if cb12:
 
 #memorials
 if cb13:
-    items = memorials
     marker_cluster = folium.plugins.MarkerCluster().add_to(m)
-    for item in items:
+    for item in memorials:
         html= f"""<center><p><b> {item['name']}</b> is created by
         <b> {item['autor']}</b> <br> 
             Click <a href= {item['url']}>here</a> to get a full description and pictures for this memorial.</p></center>
@@ -164,24 +166,27 @@ if cb15:
 
 #monuments
 if cb14:
-    items2 = monuments
     #plot monuments in the map
-    for item in items2:
-        png='data/images/{}.jpg'.format(item['Bezirk'])
+    for item in monuments:
+        png='static_images/{}.jpg'.format(item['Bezirk'])
         encoded=base64.b64encode(open(png, 'rb').read())
         html=folium.Html('''
         <img src="data:image/png;base64,{}">
         <p><i>picture: one of the monuments in {}</i> </p>
         <p>
-        <b>Type:</b>{} <br> 
-        <b> Description: </b> {} <br>
+        <b>Type: </b>{}<br> 
+        <b>Description: </b>{}<br>
+        <b> Architect / Artist: </b> {} <br>
+        <b> Dating: </b> {} <br>
         There are over 10 thousand monuments in Berlin. <br>To access the full list, click 
         <a href="https://www.berlin.de/landesdenkmalamt/_assets/pdf-und-zip/denkmale/liste-karte-datenbank/denkmalliste_berlin.csv">here</a>.</p>
         '''.format(
             encoded.decode('UTF-8'),
             item['Bezirk'], 
-            item['Typ'], 
-            item['Bezeichnung']
+            item['Denkmalart'], 
+            item['Beschreibung'],
+            item['Architekt/Künstler'],
+            item['Datierung']
             ), script=True)
         popup = folium.Popup(html, max_width=450)
         location3 = [item["latitude"], item["longitude"]]

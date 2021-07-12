@@ -12,8 +12,8 @@ from urllib.request import urlopen
 from xml.etree.ElementTree import parse
 import xml.etree.ElementTree as ET
 from geopy.geocoders import Nominatim
-import geopandas as gpd
-import dns
+from io import StringIO
+#import dns
 
 
 client = MongoClient(
@@ -63,10 +63,14 @@ db.memorials.insert_many(memorials)
 
 #MONUMENTS transform and load data
 #import data
-df = pd.read_csv('data/denkmalliste_berlin_092020.csv')
+response=requests.get('https://www.berlin.de/landesdenkmalamt/_assets/pdf-und-zip/denkmale/liste-karte-datenbank/denkmalliste_berlin.csv')
+data = StringIO(response.text)
+df=pd.read_csv(data, sep=";")
+
+
+#df = pd.read_csv('data/denkmalliste_berlin_092020.csv')
 
 #select only 10 monuments for each district
-df = pd.read_csv('data/denkmalliste_berlin_092020.csv')
 df_charlotengburg = df[df['Bezirk'] == 'Charlottenburg-Wilmersdorf'].sample(n=6)
 df_reinickendorf = df[df['Bezirk'] == 'Reinickendorf'].sample(n=6)
 df_treptow_kopenick = df[df['Bezirk'] == 'Treptow-Köpenick'].sample(n=6)
@@ -83,8 +87,6 @@ df_tempelhof_schöneberg = df[df['Bezirk'] == 'Tempelhof-Schöneberg'].sample(n=
 df_monuments_combined = pd.concat([df_charlotengburg, df_reinickendorf, df_treptow_kopenick, df_pankow, df_neukölln, df_lichtenberg, 
                                      df_marzahn_hellersdorf, df_spandau, df_steglitz_zehlendorf, df_mitte, df_friedrichshain_kreuzberg, df_tempelhof_schöneberg], ignore_index=True)
 
-
-
 #Data Cleaning
 df_monuments_combined = df_monuments_combined[df_monuments_combined['Adresse'].notna()]
 
@@ -93,7 +95,6 @@ tmp_1 = df_monuments_combined["Adresse"].str.split("/", n = 1, expand = True)
 tmp_2 = tmp_1[0].str.split(",", n = 1, expand = True)
 tmp_2 =  tmp_2.astype(str) + ', Berlin, Germany'
 df_monuments_combined['address'] = tmp_2[0]
-
 
 #converting address ro coordinates
 locator = Nominatim(user_agent='myGeocoder')
